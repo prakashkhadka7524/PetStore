@@ -1,15 +1,8 @@
-package pet.store.controller.model;
+package pet.store.model;
 
-import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import pet.store.entity.Customer;
-import pet.store.entity.PetStore;
-
-import java.util.HashSet;
-import java.util.Set;
 
 
 @Data

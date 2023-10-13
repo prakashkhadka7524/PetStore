@@ -1,22 +1,31 @@
 package pet.store.service;
 
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
-import pet.store.controller.model.PetStoreData;
+import pet.store.dao.CustomerDao;
+import pet.store.dao.EmployeeDao;
 import pet.store.dao.PetStoreDao;
+import pet.store.entity.Customer;
+import pet.store.entity.Employee;
 import pet.store.entity.PetStore;
+import pet.store.model.PetStoreCustomer;
+import pet.store.model.PetStoreData;
+import pet.store.model.PetStoreEmployee;
 
 @Service
 public class PetStoreService {
     @Autowired
     private PetStoreDao petStoreDao;
+    @Autowired
+    private EmployeeDao employeeDao;
+
+    @Autowired
+    private CustomerDao customerDao;
+
 
     @Transactional(readOnly = false)
     public PetStoreData savePetStore(PetStoreData petStoreData) {
@@ -52,5 +61,98 @@ public class PetStoreService {
                 new NoSuchElementException("PetStore with Id " + petStoreId
                         + " was not found!!"));
     }
+    @Transactional(readOnly = false)
+    public PetStoreEmployee saveEmployee(Long petStoreId, PetStoreEmployee petStoreEmployee){
+        PetStore petStore=findPetStoreById(petStoreId);
+        Employee employee=findOrCreateEmployee(petStoreEmployee.getEmployeeId());
+        setEmployeeFields(employee, petStoreEmployee);
+        employee.setPetStore(petStore);
+        petStore.getEmployees().add(employee);
+        Employee dbEmployee=employeeDao.save(employee);
+        return new PetStoreEmployee(dbEmployee);
+    }
 
+    private void setEmployeeFields(Employee employee, PetStoreEmployee petStoreEmployee) {
+        employee.setEmployeeId(petStoreEmployee.getEmployeeId());
+        employee.setPetStore(petStoreEmployee.getPetStore());
+        employee.setEmployeeFirstName(petStoreEmployee.getEmployeeFirstName());
+        employee.setEmployeeLastName(petStoreEmployee.getEmployeeLastName());
+        employee.setEmployeePhone(petStoreEmployee.getEmployeePhone());
+        employee.setEmployeeJobTitle(petStoreEmployee.getEmployeeJobTitle());
+    }
+
+    private Employee findOrCreateEmployee(Long employeeId) {
+        Employee employee;
+        if (Objects.isNull(employeeId)){
+            employee= new Employee();
+        }
+        else {
+            employee=findEmployeeById(employeeId);
+        }
+        return employee;
+    }
+
+    private Employee findEmployeeById( Long employeeId){
+        return employeeDao.findById(employeeId).
+                orElseThrow(() -> new NoSuchElementException("Employee with Id "+ employeeId
+                        + " was not found"));
+    }
+
+    public PetStoreCustomer saveCustomer(Long petStoreId, PetStoreCustomer petStoreCustomer) {
+        PetStore petStore=findPetStoreById(petStoreId);
+        Customer customer =findOrCreateCustomer(petStoreCustomer.getCustomerId());
+        setCustomerFields(customer, petStoreCustomer);
+        // customer.setPetStores((Set<PetStore>) petStore);
+        petStore.getCustomers().add(customer);
+        Customer dbCustomer=customerDao.save(customer);
+        return new PetStoreCustomer(dbCustomer);
+    }
+
+    private void setCustomerFields(Customer customer, PetStoreCustomer petStoreCustomer) {
+        customer.setCustomerId(petStoreCustomer.getCustomerId());
+        customer.setCustomerFirstName(petStoreCustomer.getCustomerFirstName());
+        customer.setCustomerLastName(petStoreCustomer.getCustomerLastName());
+        customer.setCustomerEmail(petStoreCustomer.getCustomerEmail());
+    }
+
+    private Customer findOrCreateCustomer(Long customerId) {
+        Customer customer;
+        if (Objects.isNull(customerId)){
+            customer= new Customer();
+        }
+        else {
+            customer=findCustomerById(customerId);
+        }
+        return customer;
+    }
+
+    private Customer findCustomerById(Long customerId) {
+        return customerDao.findById(customerId).orElseThrow(()-> new NoSuchElementException("Customer with Id "+ customerId
+                + " was not found"));
+    }
+    @Transactional(readOnly = true)
+    public List<PetStoreData> retrieveAllPetStores() {
+        List<PetStore> petStores=petStoreDao.findAll();
+        List<PetStoreData> petStoreDataList= new LinkedList<>();
+        for (PetStore petStore : petStores){
+            PetStoreData petStoreData= new PetStoreData(petStore);
+            petStoreData.getEmployees().clear();
+            petStoreData.getCustomers().clear();
+            petStoreDataList.add(petStoreData);
+        }
+        return petStoreDataList;
+        // return    petStoreDao.findAll().stream().map(PetStoreData ::new).toList();
+    }
+
+    public PetStoreData retrivePetStoreById(Long petStoreId) {
+        PetStore petStore=findPetStoreById(petStoreId);
+        return new PetStoreData(petStore);
+    }
+    @Transactional(readOnly = false)
+    public void deletePetStoreById(Long petStoreId) {
+        PetStore petStore= findPetStoreById(petStoreId);
+        petStoreDao.deleteById(petStoreId);
+
+    }
 }
+

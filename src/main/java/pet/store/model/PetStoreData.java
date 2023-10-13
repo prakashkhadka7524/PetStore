@@ -1,8 +1,7 @@
-package pet.store.controller.model;
+package pet.store.model;
 
 
 import lombok.Data;
-
 import lombok.NoArgsConstructor;
 import pet.store.entity.Customer;
 import pet.store.entity.Employee;
