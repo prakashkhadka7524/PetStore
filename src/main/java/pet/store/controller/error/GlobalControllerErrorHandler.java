@@ -65,6 +65,38 @@ public class GlobalControllerErrorHandler {
         exceptionMessage.setUri(uri);
         return exceptionMessage;
     }
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(code = HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+    public ExceptionMessage handleIllegalArgumentException(
+            IllegalArgumentException illegalArgumentException, WebRequest webRequest) {
+        return buildExceptionMessage(illegalArgumentException, HttpStatus.UNSUPPORTED_MEDIA_TYPE, webRequest, LogStatus.MESSAGE_ONLY
+        );
+    }
+    private ExceptionMessage buildExceptionMessage(
+            IllegalArgumentException illegalArgumentException , HttpStatus status, WebRequest webRequest, LogStatus logStatus) {
+        String message = illegalArgumentException.toString();
+        String statusReason = status.getReasonPhrase();
+        int statusCode = status.value();
+        String uri = null;
+        String timeStamp =
+                ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME);
+        if (webRequest instanceof ServletWebRequest swr) {
+            uri = swr.getRequest().getRequestURI();
+        }
+
+        if (logStatus == LogStatus.MESSAGE_ONLY) {
+            log.error("Exception : {}", illegalArgumentException.toString());
+        }
+        else {
+            log.error("Exception : {}", illegalArgumentException);
+        }
+        ExceptionMessage exceptionMessage= new ExceptionMessage();
+        exceptionMessage.setMessage(message);
+        exceptionMessage.setStatusCode(statusCode);
+        exceptionMessage.setStatusReason(statusReason);
+        exceptionMessage.setTimeStamp(timeStamp);
+        exceptionMessage.setUri(uri);
+        return exceptionMessage;
 
 
-}
+}}

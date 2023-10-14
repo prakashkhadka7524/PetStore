@@ -49,13 +49,16 @@ public class PetStoreController {
     }
 
     @PostMapping("/petstore/{petStoreId}/customer")
+    @ResponseStatus(code = HttpStatus.CREATED)
     public PetStoreCustomer createCustomer(@PathVariable Long petStoreId, @RequestBody PetStoreCustomer petStoreCustomer) {
-        log.info("Creating Pet Store Customer [] for petstore with ID= {}", petStoreId, petStoreCustomer);
+        log.info("Creating Pet Store Customer [] for petstore with ID= {}",
+                petStoreId, petStoreCustomer);
         return petStoreService.saveCustomer(petStoreId, petStoreCustomer);
     }
 
     @GetMapping("/listOfPetStore")
     public List<PetStoreData> petStoreDataList() {
+
         return petStoreService.retrieveAllPetStores();
     }
     @GetMapping("/{petStoreId}")
